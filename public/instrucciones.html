@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Instrucciones por Platillo</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    input { padding: 0.5rem; width: 300px; margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.6rem; text-align: left; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+
+<h1>Instrucciones de Platillos</h1>
+<input id="q" placeholder="Buscar en instrucciones u observaciones..." oninput="filtrarTabla()" />
+<table id="tablaInstrucciones">
+  <thead>
+    <tr>
+      <th>Platillo ID</th>
+      <th>ID Platillo</th>
+      <th>Folio</th>
+      <th>Paso</th>
+      <th>Instrucción</th>
+      <th>Observaciones</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Aquí se insertan las filas dinámicas -->
+  </tbody>
+</table>
+
+<script>
+let instrucciones = [];
+
+async function cargarInstrucciones() {
+  try {
+    const res = await fetch('/api/instrucciones');  // Ajusta si usas otra ruta
+    instrucciones = await res.json();
+    mostrarInstrucciones(instrucciones);
+  } catch (err) {y
+    console.error("Error al cargar instrucciones:", err);
+  }
+}
+
+function mostrarInstrucciones(data) {
+  const tbody = document.querySelector("#tablaInstrucciones tbody");
+  tbody.innerHTML = '';
+  data.forEach(inst => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${inst.PLA_ID_PLATILLO}</td>
+        <td>${inst.ID_PLATILLO}</td>
+        <td>${inst.FOLIO_INSTRUCCION}</td>
+        <td>${inst.NUMERO_PASO}</td>
+        <td>${inst.INSTRUCCION}</td>
+        <td>${inst.OBSERVACIONES || ''}</td>
+      </tr>
+    `;
+  });
+}
+
+function filtrarTabla() {
+  const texto = document.querySelector("#q").value.toLowerCase();
+  const filtradas = instrucciones.filter(inst =>
+    inst.INSTRUCCION.toLowerCase().includes(texto) ||
+    (inst.OBSERVACIONES || '').toLowerCase().includes(texto)
+  );
+  mostrarInstrucciones(filtradas);
+}
+
+cargarInstrucciones();
+</script>
+
+</body>
+</html>

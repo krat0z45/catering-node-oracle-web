@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Salones Catering</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+    }
+    input {
+      padding: 0.5rem;
+      width: 300px;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.6rem;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Lista de Salones</h1>
+<input id="q" placeholder="Buscar por nombre..." oninput="filtrarTabla()" />
+
+<table id="tablaSalones">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Ubicación</th>
+      <th>Costo Renta</th>
+      <th>Capacidad Máxima</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Filas dinámicas -->
+  </tbody>
+</table>
+
+<script>
+  let salones = [];
+
+  async function cargarSalones() {
+    try {
+      const res = await fetch('/api/salon');
+      salones = await res.json();
+      mostrarSalones(salones);
+    } catch (err) {
+      console.error("Error cargando salones:", err);
+    }
+  }
+
+  function mostrarSalones(data) {
+    const tbody = document.querySelector("#tablaSalones tbody");
+    tbody.innerHTML = '';
+    data.forEach(s => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${s.ID_SALON}</td>
+          <td>${s.NOMBRE_SALON}</td>
+          <td>${s.UBICACION}</td>
+          <td>$${parseFloat(s.COSTO_RENTA).toFixed(2)}</td>
+          <td>${s.CAPACIDAD_MAXIMA}</td>
+        </tr>
+      `;
+    });
+  }
+
+  function filtrarTabla() {
+    const texto = document.querySelector("#q").value.toLowerCase();
+    const filtrados = salones.filter(s =>
+      s.NOMBRE_SALON.toLowerCase().includes(texto)
+    );
+    mostrarSalones(filtrados);
+  }
+
+  cargarSalones();
+</script>
+
+</body>
+</html>

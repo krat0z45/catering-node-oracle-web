@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingredientes por Platillo</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    input { padding: 0.5rem; width: 300px; margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.6rem; text-align: left; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+
+<h1>Ingredientes por Platillo</h1>
+<input id="q" placeholder="Buscar por ID Platillo o Ingrediente..." oninput="filtrarTabla()" />
+<table id="tablaPlatIng">
+  <thead>
+    <tr>
+      <th>ID Relación</th>
+      <th>ID Platillo</th>
+      <th>ID Ingrediente</th>
+      <th>Cantidad</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Filas dinámicas -->
+  </tbody>
+</table>
+
+<script>
+let platIng = [];
+
+async function cargarPlatIng() {
+  try {
+    const res = await fetch('/api/platillo_ingrediente');  // Ajusta si usas otra ruta
+    platIng = await res.json();
+    mostrarTabla(platIng);
+  } catch (err) {
+    console.error("Error al cargar platillo_ingrediente:", err);
+  }
+}
+
+function mostrarTabla(data) {
+  const tbody = document.querySelector("#tablaPlatIng tbody");
+  tbody.innerHTML = '';
+  data.forEach(row => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${row.ID_PLATILLO_INGREDIENTE}</td>
+        <td>${row.ID_PLATILLO}</td>
+        <td>${row.ID_INGREDIENTE}</td>
+        <td>${row.CANTIDAD}</td>
+      </tr>
+    `;
+  });
+}
+
+function filtrarTabla() {
+  const texto = document.querySelector("#q").value.toLowerCase();
+  const filtrados = platIng.filter(row => 
+    row.ID_PLATILLO.toString().includes(texto) ||
+    row.ID_INGREDIENTE.toString().includes(texto)
+  );
+  mostrarTabla(filtrados);
+}
+
+cargarPlatIng();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Ingredientes Catering</title>
+  <style>
+    body { font-family: sans-serif; margin: 2rem; }
+    input { padding: 0.5rem; width: 300px; margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+    th, td { border: 1px solid #ccc; padding: 0.6rem; text-align: left; }
+    th { background-color: #f4f4f4; }
+  </style>
+</head>
+<body>
+
+<h1>Lista de Ingredientes</h1>
+<input id="q" placeholder="Buscar ingrediente por nombre..." oninput="filtrarTabla()" />
+<table id="tablaIngredientes">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Unidad de Medida</th>
+      <th>Presentación</th>
+      <th>Descripción</th>
+      <th>Precio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Las filas dinámicas aparecerán aquí -->
+  </tbody>
+</table>
+
+<script>
+let ingredientes = [];
+
+async function cargarIngredientes() {
+  try {
+    const res = await fetch('/api/ingrediente'); // Backend route
+    ingredientes = await res.json();
+    mostrarIngredientes(ingredientes);
+  } catch (err) {
+    console.error("Error cargando ingredientes:", err);
+  }
+}
+
+function mostrarIngredientes(data) {
+  const tbody = document.querySelector("#tablaIngredientes tbody");
+  tbody.innerHTML = '';
+  data.forEach(i => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${i.ID_INGREDIENTE}</td>
+        <td>${i.NOMBRE_INGREDIENTE}</td>
+        <td>${i.UNIDAD_MEDIDA}</td>
+        <td>${i.PRESENTACION}</td>
+        <td>${i.DESCRIPCION}</td>
+        <td>$${parseFloat(i.PRECIO).toFixed(2)}</td>
+      </tr>
+    `;
+  });
+}
+
+function filtrarTabla() {
+  const texto = document.querySelector("#q").value.toLowerCase();
+  const filtrados = ingredientes.filter(i => 
+    i.NOMBRE_INGREDIENTE.toLowerCase().includes(texto)
+  );
+  mostrarIngredientes(filtrados);
+}
+
+cargarIngredientes();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Platillos Catering</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+    }
+    input {
+      padding: 0.5rem;
+      width: 300px;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.6rem;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Lista de Platillos</h1>
+<input id="q" placeholder="Buscar por nombre..." oninput="filtrarTabla()" />
+
+<table id="tablaPlatillos">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Porciones</th>
+      <th>Dificultad</th>
+      <th>Precio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Filas dinámicas -->
+  </tbody>
+</table>
+
+<script>
+  let platillos = [];
+
+  async function cargarPlatillos() {
+    try {
+      const res = await fetch('/api/platillo');
+      platillos = await res.json();
+      mostrarPlatillos(platillos);
+    } catch (err) {
+      console.error("Error cargando platillos:", err);
+    }
+  }
+
+  function mostrarPlatillos(data) {
+    const tbody = document.querySelector("#tablaPlatillos tbody");
+    tbody.innerHTML = '';
+    data.forEach(p => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${p.ID_PLATILLO}</td>
+          <td>${p.NOMBRE_PLATILLO}</td>
+          <td>${p.PORCIONES}</td>
+          <td>${p.DIFICULTAD}</td>
+          <td>$${parseFloat(p.PRECIO).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+  }
+
+  function filtrarTabla() {
+    const texto = document.querySelector("#q").value.toLowerCase();
+    const filtrados = platillo.filter(p =>
+      p.NOMBRE_PLATILLO.toLowerCase().includes(texto)
+    );
+    mostrarPlatillos(filtrados);
+  }
+
+  cargarPlatillos();
+</script>
+
+</body>
+</html>

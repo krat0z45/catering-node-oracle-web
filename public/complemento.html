@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Complementos Catering</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 2rem;
+    }
+    input {
+      padding: 0.5rem;
+      width: 300px;
+      margin-bottom: 1rem;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 0.6rem;
+      text-align: left;
+    }
+    th {
+      background-color: #f4f4f4;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Lista de Complementos</h1>
+<input id="q" placeholder="Buscar por nombre..." oninput="filtrarTabla()" />
+
+<table id="tablaComplementos">
+  <thead>
+    <tr>
+      <th>ID</th>
+      <th>Nombre</th>
+      <th>Unidad</th>
+      <th>Presentación</th>
+      <th>Porciones</th>
+      <th>Descripción</th>
+      <th>Precio</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Filas dinámicas -->
+  </tbody>
+</table>
+
+<script>
+  let complementos = [];
+
+  async function cargarComplementos() {
+    try {
+      const res = await fetch('/api/complemento');
+      complementos = await res.json();
+      mostrarComplementos(complementos);
+    } catch (err) {
+      console.error("Error cargando complementos:", err);
+    }
+  }
+
+  function mostrarComplementos(data) {
+    const tbody = document.querySelector("#tablaComplementos tbody");
+    tbody.innerHTML = '';
+    data.forEach(c => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${c.ID_COMPLEMENTO}</td>
+          <td>${c.NOMBRE_COMPLEMENTO}</td>
+          <td>${c.UNIDAD_MEDIDA}</td>
+          <td>${c.PRESENTACION}</td>
+          <td>${c.PORCIONES}</td>
+          <td>${c.DESCRIPCION}</td>
+          <td>$${parseFloat(c.PRECIO).toFixed(2)}</td>
+        </tr>
+      `;
+    });
+  }
+
+  function filtrarTabla() {
+    const texto = document.querySelector("#q").value.toLowerCase();
+    const filtrados = complementos.filter(c =>
+      c.NOMBRE_COMPLEMENTO.toLowerCase().includes(texto)
+    );
+    mostrarComplementos(filtrados);
+  }
+
+  cargarComplementos();
+</script>
+
+</body>
+</html>
