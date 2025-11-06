@@ -1,85 +1,125 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login - Recetario Catering</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Recetario Catering - Menú Principal</title>
   <style>
     body {
       font-family: 'Segoe UI', sans-serif;
-      background: linear-gradient(135deg, #f0f4f7, #d9e2ec);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      margin: 0;
-    }
-    .login-container {
-      background-color: white;
-      padding: 2rem 3rem;
-      border-radius: 12px;
-      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      background: linear-gradient(to right, #fdfbfb, #ebedee);
       text-align: center;
-      width: 100%;
-      max-width: 400px;
+      padding: 4rem;
+      position: relative;
     }
-    h2 {
-      margin-bottom: 1.5rem;
-      color: #333;
+
+    h1 {
+      font-size: 2.8rem;
+      color: #222;
+      margin-bottom: 2.5rem;
     }
-    input[type="text"],
-    input[type="password"] {
-      width: 100%;
-      padding: 0.75rem;
-      margin: 0.5rem 0 1rem;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-    button {
-      padding: 0.75rem 2rem;
-      background-color: #007bff;
-      color: white;
+
+    .btn {
+      display: inline-block;
+      padding: 1.2rem 2.5rem;
+      margin: 1rem;
+      font-size: 1.1rem;
+      color: #fff;
+      background-color: #28a745;
       border: none;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1rem;
+      border-radius: 10px;
+      text-decoration: none;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+      transition: background-color 0.3s ease, transform 0.2s;
     }
-    button:hover {
-      background-color: #0056b3;
+
+    .btn:hover {
+      background-color: #218838;
+      transform: scale(1.05);
     }
-    .error {
-      color: red;
-      margin-top: 1rem;
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .btn span {
+      margin-right: 8px;
+    }
+
+    .login-bar {
+      position: absolute;
+      top: 1rem;
+      right: 2rem;
+    }
+
+    .login-bar span {
+      margin-right: 1rem;
+      font-weight: bold;
+    }
+
+    .btn-logout {
+      background-color: #dc3545;
+    }
+
+    .btn-logout:hover {
+      background-color: #c82333;
     }
   </style>
 </head>
 <body>
-  <div class="login-container">
-    <h2>Iniciar Sesión</h2>
-    <form id="loginForm">
-      <input type="text" id="usuario" placeholder="Usuario" required>
-      <input type="password" id="contrasena" placeholder="Contraseña" required>
-      <button type="submit">Entrar</button>
-    </form>
-    <p class="error" id="msgLogin"></p>
+
+  <div class="login-bar" id="loginArea">
+    <!-- Esto se llena con JS -->
+    <a href="/login.html" class="btn"><span>🔐</span>Login</a>
+  </div>
+
+  <h1>🍽️ SERVICIO DE BANQUETES CATHERINE 🍽️</h1>
+
+  <div class="menu" id="menuPrincipal">
+    <a href="/solicitud.html" class="btn"><span>📝</span>Formulario de Solicitud</a>
+    <a href="/platillo.html" class="btn"><span>🍛</span>Platillos</a>
+    <a href="/ingrediente.html" class="btn"><span>🥕</span>Ingredientes</a>
+    <a href="/instrucciones.html" class="btn"><span>📋</span>Instrucciones</a>
+    <a href="/complemento.html" class="btn"><span>🛒</span>Complemento</a>
+    <a href="/salon.html" class="btn"><span>🏘️</span>Salón</a>
   </div>
 
   <script>
-    document.getElementById('loginForm').addEventListener('submit', async function (e) {
-      e.preventDefault();
-      const usuario = document.getElementById('usuario').value;
-      const contrasena = document.getElementById('contrasena').value;
+    const user = JSON.parse(sessionStorage.getItem('usuario'));
 
-      // Aquí harías un fetch real al backend, por ahora simulamos:
-      if (usuario === 'admin' && contrasena === '1234') {
-        window.location.href = '/menu.html'; // Redirige al menú principal
-      } else {
-        document.getElementById('msgLogin').textContent = '❌ Usuario o contraseña incorrectos';
+    if (user) {
+      // Actualizar login arriba
+      const loginArea = document.getElementById('loginArea');
+      loginArea.innerHTML = `
+        <span>Hola, ${user.nombre} (${user.rol})</span>
+        <button class="btn btn-logout" onclick="cerrarSesion()">Cerrar sesión</button>
+      `;
+
+      // Agregar botones según rol
+      const menu = document.getElementById('menuPrincipal');
+      if (user.rol === 'gerente') {
+        menu.innerHTML += '<a href="/crear-paquete.html" class="btn"><span>📦</span>Crear Paquete</a>';
+        menu.innerHTML += '<a href="/alta-platillo.html" class="btn"><span>➕</span>Alta de Platillos</a>';
       }
-    });
+
+      if (user.rol === 'admin') {
+        menu.innerHTML += '<a href="/admin-gerentes.html" class="btn"><span>🛠️</span>Admin Gerentes</a>';
+      }
+
+      if (user.rol === 'general') {
+        menu.innerHTML += '<a href="/mis-eventos.html" class="btn"><span>📆</span>Mis Eventos</a>';
+      }
+    }
+
+    function cerrarSesion() {
+      sessionStorage.clear();
+      location.href = "/index.html";
+    }
   </script>
+
 </body>
 </html>
-
-
 

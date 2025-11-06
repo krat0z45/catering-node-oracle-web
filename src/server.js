@@ -6,6 +6,7 @@ const { initPool, closePool } = require('./db');
 require('dotenv').config();
 
 const app = express();
+const loginRoutes = require('./routes/login');
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
@@ -18,6 +19,7 @@ app.use('/api/platillo_ingrediente', require('./routes/platillo_ingrediente'));
 app.use('/api/complemento', require('./routes/complemento'));
 app.use('/api/salon', require('./routes/salon'));
 app.use('/api/solicitud', require('./routes/solicitud'));
+app.use('/api/login', loginRoutes);
 
 const port = process.env.PORT || 3000;
 initPool().then(() => {
