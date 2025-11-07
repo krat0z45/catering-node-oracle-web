@@ -20,6 +20,9 @@ app.use('/api/complemento', require('./routes/complemento'));
 app.use('/api/salon', require('./routes/salon'));
 app.use('/api/solicitud', require('./routes/solicitud'));
 app.use('/api/login', loginRoutes);
+app.use('/api/proyecto', require('./routes/proyecto'));
+app.use('/api/admin', require('./routes/admin')); 
+app.use('/api/proyecto-platillos', require('./routes/proyecto_platillo'));
 
 const port = process.env.PORT || 3000;
 initPool().then(() => {

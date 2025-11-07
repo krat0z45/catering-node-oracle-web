@@ -78,13 +78,19 @@
 
   <h1>🍽️ SERVICIO DE BANQUETES CATHERINE 🍽️</h1>
 
+  <div id="info-container">
+    <h2>Platillos</h2>
+    <div id="platillos-container"></div>
+
+    <h2>Complementos</h2>
+    <div id="complementos-container"></div>
+
+    <h2>Salones</h2>
+    <div id="salones-container"></div>
+  </div>
+
   <div class="menu" id="menuPrincipal">
     <a href="/solicitud.html" class="btn"><span>📝</span>Formulario de Solicitud</a>
-    <a href="/platillo.html" class="btn"><span>🍛</span>Platillos</a>
-    <a href="/ingrediente.html" class="btn"><span>🥕</span>Ingredientes</a>
-    <a href="/instrucciones.html" class="btn"><span>📋</span>Instrucciones</a>
-    <a href="/complemento.html" class="btn"><span>🛒</span>Complemento</a>
-    <a href="/salon.html" class="btn"><span>🏘️</span>Salón</a>
   </div>
 
   <script>
@@ -118,8 +124,36 @@
       sessionStorage.clear();
       location.href = "/index.html";
     }
+
+    async function fetchData(url) {
+      const response = await fetch(url);
+      return response.json();
+    }
+
+    async function displayData() {
+      const platillosContainer = document.getElementById('platillos-container');
+      const complementosContainer = document.getElementById('complementos-container');
+      const salonesContainer = document.getElementById('salones-container');
+
+      const platillos = await fetchData('/api/platillo');
+      const complementos = await fetchData('/api/complemento');
+      const salones = await fetchData('/api/salon');
+
+      platillos.forEach(platillo => {
+        platillosContainer.innerHTML += `<div><strong>${platillo.nombre}</strong> - $${platillo.precio}</div>`;
+      });
+
+      complementos.forEach(complemento => {
+        complementosContainer.innerHTML += `<div><strong>${complemento.nombre}</strong> - $${complemento.precio}</div>`;
+      });
+
+      salones.forEach(salon => {
+        salonesContainer.innerHTML += `<div><strong>${salon.nombre}</strong> - $${salon.costo_renta}</div>`;
+      });
+    }
+
+    displayData();
   </script>
 
 </body>
 </html>
-
