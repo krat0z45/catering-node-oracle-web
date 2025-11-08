@@ -85,7 +85,14 @@
         if (res.ok) {
           const data = await res.json();
           sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
-          location.href = '/index.html';
+
+          // Redirección basada en el rol
+          if (data.usuario.rol === 'admin') {
+            location.href = '/admin-gerentes.html';
+          } else {
+            location.href = '/index.html';
+          }
+          
         } else {
           msg.textContent = '❌ Correo o contraseña incorrectos.';
         }

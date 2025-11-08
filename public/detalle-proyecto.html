@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalle del Proyecto - Catering Pro</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-grid@2.2/css/simple-grid.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; margin: 0; }
+        .navbar { background-color: #ffffff; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .navbar a { color: #333; text-decoration: none; padding: 0 1rem; font-weight: 500; }
+        .container { padding: 2rem; max-width: 1000px; margin: auto; }
+        .main-details, .section { background: white; border-radius: 8px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+        h1, h2 { color: #0056b3; border-bottom: 2px solid #eee; padding-bottom: 0.5rem; }
+        .grid-details { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;}
+        .gerente-only, .cliente-only { display: none; }
+        ul { list-style: none; padding: 0; }
+        li { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid #eee; }
+        .remove-btn, .action-btn { border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; color: white; }
+        .remove-btn { background: #dc3545; }
+        .action-btn.cancel { background: #ffc107; color: #333; }
+        .action-btn.approve { background: #28a745; }
+        #msg-acciones { margin-top: 1rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="navbar"><a href="/index.html">Volver a Inicio</a></div>
+
+<div class="container">
+    <div id="project-details"></div>
+
+    <div class="row">
+        <div class="col-6">
+            <div id="platillos-section" class="section">...</div>
+        </div>
+        <div class="col-6">
+            <div id="complementos-section" class="section">...</div>
+        </div>
+    </div>
+
+    <div id="actions-section" class="section">
+        <h2>Acciones del Proyecto</h2>
+        
+        <!-- Acción para Cliente: Modificar Invitados -->
+        <div class="cliente-only">
+            <h4>Modificar Número de Invitados</h4>
+            <p>Puedes cambiar el número de invitados hasta 5 días antes del evento.</p>
+            <input type="number" id="num_invitados_nuevo" placeholder="Nuevo número de invitados">
+            <input type="password" id="contrasena_proyecto_invitados" placeholder="Contraseña del Proyecto">
+            <button class="action-btn approve" onclick="actualizarInvitados()">Actualizar Invitados</button>
+        </div>
+
+        <!-- Acción para Cliente: Solicitar Cancelación -->
+        <div class="cliente-only">
+            <hr>
+            <h4>Cancelar Proyecto</h4>
+            <p>Si cancelas el proyecto, un gerente deberá aprobar la solicitud.</p>
+            <button class="action-btn cancel" onclick="solicitarCancelacion()">Solicitar Cancelación</button>
+        </div>
+
+        <!-- Acción para Gerente: Aprobar Cancelación -->
+        <div class="gerente-only">
+            <h4>Gestionar Cancelación</h4>
+            <p>Solo puedes cancelar un proyecto si el cliente lo ha solicitado (estado "Solicitud Cancelación").</p>
+            <button class="action-btn remove" onclick="cancelarProyecto()">Aprobar Cancelación</button>
+        </div>
+        <div id="msg-acciones"></div>
+    </div>
+</div>
+
+<script>
+    const user = JSON.parse(sessionStorage.getItem('usuario'));
+    const params = new URLSearchParams(window.location.search);
+    const projectId = params.get('id');
+    let projectStatus = '';
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        // ... (código de inicialización existente) ...
+        await loadProjectDetails(projectId);
+        // ... (resto de cargas) ...
+    });
+
+    async function loadProjectDetails(id) {
+        // ... (código existente de carga de detalles) ...
+        const project = await res.json();
+        projectStatus = project.ESTATUS;
+        // ... (resto del innerHTML)
+        setupActionButtons(project.ESTATUS, project.CLIENTE_ID);
+    }
+
+    function setupActionButtons(status, clienteId) {
+        if (user.rol === 'admin' || user.rol === 'gerente') {
+            if(status.toLowerCase() === 'solicitud cancelacion') {
+                 document.querySelectorAll('.gerente-only').forEach(el => el.style.display = 'block');
+            }
+        }
+        if (user.rol === 'general' && user.id === clienteId) {
+             if(status.toLowerCase() === 'activo'){
+                document.querySelectorAll('.cliente-only').forEach(el => el.style.display = 'block');
+             }
+        }
+    }
+
+    async function actualizarInvitados() {
+        const num_invitados = document.getElementById('num_invitados_nuevo').value;
+        const contrasena_proyecto = document.getElementById('contrasena_proyecto_invitados').value;
+        const msgDiv = document.getElementById('msg-acciones');
+
+        if (!num_invitados || !contrasena_proyecto) {
+            msgDiv.textContent = 'Por favor, completa todos los campos.';
+            return;
+        }
+
+        try {
+            const res = await fetch(`/api/proyecto/${projectId}/invitados`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ num_invitados, contrasena_proyecto })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                msgDiv.style.color = 'green';
+                msgDiv.textContent = data.message;
+                setTimeout(() => location.reload(), 2000);
+            } else {
+                msgDiv.style.color = 'red';
+                msgDiv.textContent = data.error;
+            }
+        } catch (err) {
+             msgDiv.textContent = 'Error de conexión.';
+        }
+    }
+
+    async function solicitarCancelacion() {
+        // Implementación futura - Por ahora, se asume que el gerente debe hacerlo
+        alert('Función no implementada. Contacta al gerente para procesar la cancelación.');
+    }
+    
+    async function cancelarProyecto() {
+        if (!confirm('¿Estás seguro de que quieres aprobar la cancelación de este proyecto? Esta acción no se puede deshacer.')) return;
+        const msgDiv = document.getElementById('msg-acciones');
+        try {
+            const res = await fetch(`/api/proyecto/${projectId}/cancelar`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id_usuario_accion: user.id })
+            });
+            const data = await res.json();
+            if (res.ok) {
+                msgDiv.style.color = 'green';
+                msgDiv.textContent = data.message;
+                setTimeout(() => location.href = '/index.html', 2000);
+            } else {
+                msgDiv.style.color = 'red';
+                msgDiv.textContent = data.error;
+            }
+        } catch (err) {
+             msgDiv.textContent = 'Error de conexión.';
+        }
+    }
+
+    // ... (resto de funciones de platillos y complementos) ...
+</script>
+</body>
+</html>

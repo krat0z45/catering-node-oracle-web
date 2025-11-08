@@ -1,128 +1,136 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>Mis Proyectos</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 2rem;
-    }
-    .proyecto {
-      border: 1px solid #ccc;
-      padding: 1rem;
-      margin-bottom: 1rem;
-      border-radius: 8px;
-    }
-    .proyecto h3 {
-      margin-top: 0;
-    }
-    .proyecto p {
-      margin-bottom: 0.5rem;
-    }
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgb(0,0,0);
-      background-color: rgba(0,0,0,0.4);
-    }
-    .modal-content {
-      background-color: #fefefe;
-      margin: 15% auto;
-      padding: 20px;
-      border: 1px solid #888;
-      width: 80%;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <title>Crear Nuevo Proyecto - Catering Pro</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-grid@2.2/css/simple-grid.css">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; margin: 0; }
+        .navbar { background-color: #ffffff; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
+        .navbar-links a { color: #333; text-decoration: none; padding: 0 1rem; font-weight: 500; }
+        .container { padding: 2rem; max-width: 800px; margin: auto; }
+        .form-container { background: white; border-radius: 8px; padding: 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+        h1, h2 { color: #333; }
+        fieldset { border: 1px solid #ddd; padding: 1.5rem; border-radius: 6px; margin-bottom: 1.5rem; }
+        legend { font-weight: bold; color: #0056b3; padding: 0 0.5rem; }
+        input, select, button { width: 100%; padding: 0.8rem; margin: 0.5rem 0; border: 1px solid #ccc; border-radius: 6px; }
+        button { background-color: #28a745; color: white; font-weight: bold; border: none; cursor: pointer; }
+        button:hover { background-color: #218838; }
+        #msg { margin-top: 1.5rem; text-align: center; font-size: 1.1rem; }
+    </style>
 </head>
 <body>
-  <h1>Mis Proyectos</h1>
-  <div id="proyectos"></div>
 
-  <div id="myModal" class="modal">
-    <div class="modal-content">
-      <span class="close">&times;</span>
-      <h2>Actualizar número de invitados</h2>
-      <input type="number" id="numInvitados" />
-      <button id="actualizarInvitados">Actualizar</button>
+<div class="navbar">
+    <div class="navbar-links">
+        <a href="/index.html">Inicio</a>
+        <a href="/proyecto.html">Crear Proyecto</a>
+        <a href="/solicitud.html">Ver Solicitudes</a>
     </div>
-  </div>
+</div>
 
-  <script>
-    let currentProjectId = null;
+<div class="container">
+    <div class="form-container">
+        <h1>Crear Nuevo Proyecto</h1>
+        <form id="formCrearProyecto">
+            <fieldset>
+                <legend>Datos del Cliente</legend>
+                <input type="text" id="cliente_nombre" placeholder="Nombre del Cliente" required>
+                <input type="email" id="cliente_correo" placeholder="Correo del Cliente" required>
+                <input type="tel" id="cliente_telefono" placeholder="Teléfono del Cliente">
+            </fieldset>
 
-    async function cargarProyectos() {
-      const usuario = JSON.parse(sessionStorage.getItem('usuario'));
-      if (!usuario) {
-        location.href = '/login.html';
-        return;
-      }
+            <fieldset>
+                <legend>Detalles del Evento</legend>
+                <input type="text" id="nombre_proyecto" placeholder="Nombre del Evento (Ej: Boda Smith)" required>
+                <input type="date" id="fecha_evento" required>
+                <input type="number" id="num_invitados" placeholder="Número de Invitados" required min="1">
+                <select id="id_salon" required>
+                    <option value="" disabled selected>Cargando salones...</option>
+                </select>
+            </fieldset>
 
-      try {
-        const res = await fetch(`/api/proyecto/cliente/${usuario.ID_CLIENTE}`);
-        const proyectos = await res.json();
-        mostrarProyectos(proyectos);
-      } catch (err) {
-        console.error("Error cargando proyectos:", err);
-      }
-    }
+            <button type="submit">Crear Proyecto</button>
+        </form>
+        <div id="msg"></div>
+    </div>
+</div>
 
-    function mostrarProyectos(proyectos) {
-      const divProyectos = document.getElementById('proyectos');
-      divProyectos.innerHTML = '';
-      proyectos.forEach(p => {
-        const proyectoDiv = document.createElement('div');
-        proyectoDiv.className = 'proyecto';
-
-        const diasRestantes = (new Date(p.FECHA_EVENTO) - new Date()) / (1000 * 60 * 60 * 24);
-        const puedeActualizar = diasRestantes >= 5;
-
-        proyectoDiv.innerHTML = `
-          <h3>${p.NOMBRE_PROYECTO}</h3>
-          <p><strong>Fecha del evento:</strong> ${new Date(p.FECHA_EVENTO).toLocaleDateString()}</p>
-          <p><strong>Número de invitados:</strong> ${p.NUM_INVITADOS}</p>
-          <p><strong>Salón:</strong> ${p.NOMBRE_SALON}</p>
-          <p><strong>Estatus:</strong> ${p.ESTATUS}</p>
-          <button onclick="openModal(${p.ID_PROYECTO})" ${!puedeActualizar ? 'disabled' : ''}>Actualizar invitados</button>
-        `;
-        divProyectos.appendChild(proyectoDiv);
-      });
-    }
-
-    function openModal(projectId) {
-      currentProjectId = projectId;
-      document.getElementById('myModal').style.display = 'block';
-    }
-
-    document.querySelector('.close').onclick = function() {
-      document.getElementById('myModal').style.display = 'none';
-    }
-
-    document.getElementById('actualizarInvitados').onclick = async function() {
-      const numInvitados = document.getElementById('numInvitados').value;
-      try {
-        const res = await fetch(`/api/proyecto/${currentProjectId}/invitados`, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ num_invitados: numInvitados })
-        });
-        if (res.ok) {
-          location.reload();
-        } else {
-          alert('Error al actualizar el número de invitados');
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const user = JSON.parse(sessionStorage.getItem('usuario'));
+        if (!user || user.rol !== 'gerente') {
+            location.href = '/login.html';
+            return;
         }
-      } catch (err) {
-        console.error('Error al actualizar invitados:', err);
-      }
-    }
 
-    cargarProyectos();
-  </script>
+        cargarSalones();
+
+        document.getElementById('formCrearProyecto').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const msgDiv = document.getElementById('msg');
+            msgDiv.textContent = '';
+
+            const datos = {
+                nombre_proyecto: document.getElementById('nombre_proyecto').value,
+                fecha_evento: document.getElementById('fecha_evento').value,
+                num_invitados: parseInt(document.getElementById('num_invitados').value),
+                id_salon: document.getElementById('id_salon').value,
+                id_gerente: user.id,
+                cliente: {
+                    nombre: document.getElementById('cliente_nombre').value,
+                    correo: document.getElementById('cliente_correo').value,
+                    telefono: document.getElementById('cliente_telefono').value
+                }
+            };
+
+            try {
+                const res = await fetch('/api/proyecto', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(datos)
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    msgDiv.style.color = 'green';
+                    msgDiv.innerHTML = `✅ ¡Proyecto creado con éxito! <br> ID del Proyecto: ${data.id_proyecto} <br> Contraseña para Cliente: <strong>${data.contrasena_proyecto}</strong>`;
+                    e.target.reset();
+                } else {
+                    msgDiv.style.color = 'red';
+                    let errorMsg = `❌ ${data.error || 'Error al crear el proyecto.'}`;
+                    if (data.sugerencias) {
+                        errorMsg += `<br>Salones sugeridos: ${data.sugerencias.map(s => `${s.NOMBRE_SALON} (Cap: ${s.CAPACIDAD_MAXIMA})`).join(', ')}`;
+                    }
+                    msgDiv.innerHTML = errorMsg;
+                }
+
+            } catch (err) {
+                msgDiv.style.color = 'red';
+                msgDiv.textContent = '❌ Error de conexión con el servidor.';
+            }
+        });
+    });
+
+    async function cargarSalones() {
+        const selectSalon = document.getElementById('id_salon');
+        try {
+            const res = await fetch('/api/salon');
+            if (res.ok) {
+                const salones = await res.json();
+                selectSalon.innerHTML = '<option value="" disabled selected>Seleccione un salón</option>';
+                salones.forEach(salon => {
+                    selectSalon.innerHTML += `<option value="${salon.ID_SALON}">${salon.NOMBRE_SALON} (Capacidad: ${salon.CAPACIDAD_MAXIMA})</option>`;
+                });
+            } else {
+                selectSalon.innerHTML = '<option value="" disabled>Error al cargar salones</option>';
+            }
+        } catch (err) {
+            selectSalon.innerHTML = '<option value="" disabled>Error de conexión</option>';
+        }
+    }
+</script>
+
 </body>
 </html>
