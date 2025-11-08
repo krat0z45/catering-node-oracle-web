@@ -70,11 +70,12 @@
 
       const datos = {
         correo: document.getElementById('correo').value,
-        password: document.getElementById('password').value
+        contrasena: document.getElementById('password').value // Corregido: 'password' -> 'contrasena'
       };
 
       try {
-        const res = await fetch('/api/login', {
+        // Corregido: La URL ahora apunta a la ruta de usuario correcta
+        const res = await fetch('/api/usuario/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(datos)
@@ -84,11 +85,13 @@
 
         if (res.ok) {
           const data = await res.json();
-          sessionStorage.setItem('usuario', JSON.stringify(data.usuario));
+          sessionStorage.setItem('usuario', JSON.stringify(data)); // Guardar todo el objeto de usuario
 
           // Redirección basada en el rol
-          if (data.usuario.rol === 'admin') {
+          if (data.rol === 'admin') { // Acceder a 'rol' directamente
             location.href = '/admin-gerentes.html';
+          } else if (data.rol === 'gerente') {
+            location.href = '/gerente-dashboard.html'; // Asumiendo que tienes un dashboard de gerente
           } else {
             location.href = '/index.html';
           }

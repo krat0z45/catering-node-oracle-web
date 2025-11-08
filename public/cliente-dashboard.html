@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Panel - Catering Pro</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; margin: 0; }
+        .navbar { /* ... Estilos del navbar ... */ }
+        .container { padding: 2rem; max-width: 1200px; margin: auto; }
+        .section { background: white; border-radius: 8px; padding: 2rem; margin-bottom: 2rem; box-shadow: 0 2px 5px rgba(0,0,0,0.08); }
+        h1, h2 { color: #0056b3; }
+        .project-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem; }
+        .project-card { /* ... Estilos de las tarjetas ... */ }
+        .status { /* ... Estilos de los estados ... */ }
+        form input, form textarea, form button { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        form button { background: #007bff; color: white; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="navbar">
+    <!-- ... Contenido del Navbar ... -->
+</div>
+
+<div class="container">
+    <div class="section">
+        <h2>Mis Solicitudes y Proyectos</h2>
+        <div id="projects-container" class="project-grid"></div>
+    </div>
+
+    <div class="section">
+        <h2>Crear una Nueva Solicitud</h2>
+        <form id="form-nueva-solicitud">
+            <input type="text" id="nombre-proyecto" placeholder="Nombre o tipo de evento (ej. Boda, Conferencia)" required>
+            <input type="date" id="fecha-evento" required>
+            <textarea id="detalles-evento" placeholder="Describe brevemente tu evento..." rows="3"></textarea>
+            <button type="submit">Enviar Nueva Solicitud</button>
+            <p id="solicitud-msg"></p>
+        </form>
+    </div>
+</div>
+
+<script>
+    const user = JSON.parse(sessionStorage.getItem('usuario'));
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (!user) {
+            location.href = '/login.html';
+            return;
+        }
+
+        // Llenar datos del usuario y configurar navbar
+        // ...
+
+        loadProjects(user.id);
+    });
+
+    async function loadProjects(userId) {
+        const container = document.getElementById('projects-container');
+        try {
+            const res = await fetch(`/api/proyecto/cliente/${userId}`);
+            const projects = await res.json();
+            container.innerHTML = '';
+            if (projects.length === 0) {
+                container.innerHTML = '<p>Aún no tienes solicitudes ni proyectos.</p>';
+                return;
+            }
+            projects.forEach(proj => {
+                // ... (código para renderizar cada tarjeta de proyecto)
+            });
+        } catch (error) {
+            container.innerHTML = `<p style="color: red;">No se pudieron cargar tus proyectos.</p>`;
+        }
+    }
+
+    document.getElementById('form-nueva-solicitud').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const msgEl = document.getElementById('solicitud-msg');
+        const btn = e.target.querySelector('button');
+        btn.disabled = true;
+
+        const datos = {
+            nombre_proyecto: document.getElementById('nombre-proyecto').value,
+            fecha_evento: document.getElementById('fecha-evento').value,
+            detalles: document.getElementById('detalles-evento').value,
+            id_cliente: user.id 
+        };
+
+        try {
+            const res = await fetch('/api/proyecto/solicitud-cliente', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datos)
+            });
+
+            if (res.ok) {
+                msgEl.style.color = 'green';
+                msgEl.textContent = '¡Solicitud enviada con éxito!';
+                e.target.reset();
+                loadProjects(user.id); // Recargar la lista de proyectos
+            } else {
+                const data = await res.json();
+                msgEl.style.color = 'red';
+                msgEl.textContent = `Error: ${data.error}`;
+            }
+        } catch (err) {
+            msgEl.style.color = 'red';
+            msgEl.textContent = 'Error de conexión.';
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+</script>
+</body>
+</html>

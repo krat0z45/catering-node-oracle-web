@@ -1,112 +1,136 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard - Catering Pro</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-grid@2.2/css/simple-grid.css">
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: #f4f7f6; margin: 0; }
-        .navbar { background-color: #ffffff; padding: 1rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; }
-        .navbar-links a { color: #333; text-decoration: none; padding: 0 1rem; font-weight: 500; }
-        .navbar-user { color: #555; }
-        .container { padding: 2rem; max-width: 1200px; margin: auto; }
-        .project-card { background: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; box-shadow: 0 2px 5px rgba(0,0,0,0.08); transition: transform 0.2s; display: block; color: inherit; text-decoration: none; }
-        .project-card:hover { transform: translateY(-5px); }
-        .project-card h3 { margin-top: 0; color: #0056b3; }
-        .status { padding: 0.3rem 0.6rem; border-radius: 12px; color: white; font-size: 0.8em; text-transform: uppercase; }
-        .status-activo { background-color: #28a745; }
-        .status-cancelado { background-color: #dc3545; }
-        .status-finiquitado { background-color: #17a2b8; }
-        .status-en.proceso { background-color: #ffc107; color: #333; }
-        #logoutBtn { background: #dc3545; color: white; border: none; padding: 0.5rem 1rem; border-radius: 5px; cursor: pointer; margin-left: 1rem; }
-        .gerente-only, .admin-only { display: none; }
-    </style>
+  <meta charset="UTF-8">
+  <title>Catering Service - Inicio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background: #f9f9f9; color: #333; }
+    header { background: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 1rem 2rem; display: flex; justify-content: space-between; align-items: center; }
+    h1, h2, h3 { color: #2c3e50; }
+    .container { padding: 2rem; max-width: 1200px; margin: auto; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; }
+    .card { background: white; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); padding: 1.5rem; }
+    .form-section { background: #fff; padding: 2rem; border-radius: 8px; margin-top: 2rem; }
+    form input, form select, form textarea, form button { width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+    form button { background: #28a745; color: white; cursor: pointer; font-size: 1rem; }
+    .login-btn { text-decoration: none; background: #3498db; color: white; padding: 0.6rem 1rem; border-radius: 4px; }
+    #solicitud-msg { margin-top: 1rem; padding: 1rem; border-radius: 5px; text-align: center; }
+    .success { background-color: #d4edda; color: #155724; }
+    .error { background-color: #f8d7da; color: #721c24; }
+  </style>
 </head>
 <body>
 
-<div class="navbar">
-    <div class="navbar-links">
-        <a href="/index.html">Inicio</a>
-        <a href="/proyecto.html" class="gerente-only">Crear Proyecto</a>
-        <a href="/solicitud.html" class="gerente-only">Ver Solicitudes</a>
-        <a href="/admin-gerentes.html" class="admin-only">Panel de Admin</a>
-    </div>
-    <div class="navbar-user">
-        Conectado como: <strong id="userName"></strong> (<em id="userRole"></em>)
-        <button id="logoutBtn">Cerrar Sesión</button>
-    </div>
-</div>
+  <header>
+    <h1>Catering Service</h1>
+    <a href="/login.html" class="login-btn">Iniciar Sesión</a>
+  </header>
 
-<div class="container">
-    <h1>Mis Proyectos</h1>
-    <div id="projects-container" class="row">
-        <!-- Los proyectos se cargarán aquí dinámicamente -->
-    </div>
-</div>
+  <div class="container">
+    <section id="platillos">
+      <h2>Nuestros Platillos</h2>
+      <div id="platillos-grid" class="grid"></div>
+    </section>
 
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const user = JSON.parse(sessionStorage.getItem('usuario'));
+    <section id="salones" style="margin-top: 2rem;">
+      <h2>Salones Disponibles</h2>
+      <div id="salones-grid" class="grid"></div>
+    </section>
 
-        if (!user) {
-            location.href = '/login.html';
-            return;
+    <section id="solicitud-publica" class="form-section">
+      <h2>Realiza tu Solicitud y Crea tu Cuenta</h2>
+      <form id="form-solicitud-publica">
+        <input type="text" id="nombre-cliente" placeholder="Nombre Completo" required>
+        <input type="email" id="correo-cliente" placeholder="Correo Electrónico" required>
+        <input type="tel" id="telefono-cliente" placeholder="Teléfono" required>
+        <input type="date" id="fecha-evento" required>
+        <textarea id="detalles-evento" placeholder="Describe brevemente tu evento..." rows="4"></textarea>
+        <button type="submit">Enviar Solicitud y Registrarme</button>
+      </form>
+      <div id="solicitud-msg"></div>
+    </section>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async () => {
+      const cargarDatos = async (url, gridId, renderFunc) => {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) throw new Error(`Error al cargar: ${res.statusText}`);
+          const data = await res.json();
+          const grid = document.getElementById(gridId);
+          grid.innerHTML = ''; // Limpiar antes de añadir
+          data.forEach(item => grid.appendChild(renderFunc(item)));
+        } catch (err) {
+          console.error(`Error cargando ${url}:`, err);
+          document.getElementById(gridId).innerHTML = `<p>No se pudieron cargar los datos. Intente más tarde.</p>`;
         }
+      };
 
-        document.getElementById('userName').textContent = user.nombre;
-        document.getElementById('userRole').textContent = user.rol;
+      cargarDatos('/api/platillo', 'platillos-grid', p => {
+        const item = document.createElement('div');
+        item.className = 'card';
+        item.innerHTML = `<h3>${p.NOMBRE}</h3><p>${p.DESCRIPCION}</p><p><b>Precio:</b> $${p.PRECIO.toFixed(2)}</p>`;
+        return item;
+      });
 
-        if (user.rol === 'admin') {
-            document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'inline');
-        } else if (user.rol === 'gerente') {
-            document.querySelectorAll('.gerente-only').forEach(el => el.style.display = 'inline');
-        }
-
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            sessionStorage.removeItem('usuario');
-            location.href = '/login.html';
-        });
-
-        loadProjects(user);
+      cargarDatos('/api/salon', 'salones-grid', s => {
+        const item = document.createElement('div');
+        item.className = 'card';
+        item.innerHTML = `<h3>${s.NOMBRE}</h3><p>${s.UBICACION}</p><p><b>Capacidad:</b> ${s.CAPACIDAD} personas</p>`;
+        return item;
+      });
     });
 
-    async function loadProjects(user) {
-        let url = user.rol === 'general' ? `/api/proyecto/cliente/${user.id}` : '/api/proyecto';
+    document.getElementById('form-solicitud-publica').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msgEl = document.getElementById('solicitud-msg');
+      const btn = e.target.querySelector('button');
+      btn.disabled = true;
+      btn.textContent = 'Enviando...';
 
-        const container = document.getElementById('projects-container');
-        try {
-            const res = await fetch(url);
-            if (!res.ok) throw new Error('No se pudieron cargar los proyectos.');
-            
-            const projects = await res.json();
-            container.innerHTML = '';
+      const datos = {
+        nombre: document.getElementById('nombre-cliente').value,
+        correo: document.getElementById('correo-cliente').value,
+        telefono: document.getElementById('telefono-cliente').value,
+        fecha_evento: document.getElementById('fecha-evento').value,
+        detalles: document.getElementById('detalles-evento').value,
+      };
 
-            if (projects.length === 0) {
-                container.innerHTML = '<p>No hay proyectos para mostrar.</p>';
-                return;
-            }
+      try {
+        const res = await fetch('/api/proyecto/solicitud-publica', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(datos)
+        });
 
-            projects.forEach(proj => {
-                const statusClass = `status-${proj.ESTATUS.toLowerCase().replace(' ','.')}`;
-                const card = `
-                    <div class="col-4">
-                        <a href="/detalle-proyecto.html?id=${proj.ID_PROYECTO}" class="project-card">
-                            <h3>${proj.NOMBRE_PROYECTO || 'Proyecto'} #${proj.ID_PROYECTO}</h3>
-                            <p><strong>Fecha:</strong> ${new Date(proj.FECHA_EVENTO).toLocaleDateString()}</p>
-                            <p><strong>Invitados:</strong> ${proj.NUM_INVITADOS}</p>
-                            <p><strong>Salón:</strong> ${proj.NOMBRE_SALON}</p>
-                            <p><strong>Estado:</strong> <span class="status ${statusClass}">${proj.ESTATUS}</span></p>
-                        </a>
-                    </div>
-                `;
-                container.innerHTML += card;
-            });
+        const data = await res.json();
+        msgEl.className = ''; // Reset classes
 
-        } catch (error) {
-            container.innerHTML = `<p style="color: red;">${error.message}</p>`;
+        if (!res.ok) {
+          msgEl.textContent = `Error: ${data.error || 'No se pudo enviar la solicitud.'}`;
+          msgEl.classList.add('error');
+        } else {
+          e.target.reset(); // Limpiar formulario
+          msgEl.classList.add('success');
+          msgEl.innerHTML = `¡Éxito! Tu solicitud ha sido enviada.<br>
+                           Se ha creado una cuenta para ti.<br><br>
+                           <strong>Correo:</strong> ${data.correo}<br>
+                           <strong>Contraseña Temporal:</strong> ${data.contrasena_temporal}<br><br>
+                           <a href="/login.html"><strong>Inicia sesión aquí</strong></a> para ver tu solicitud.`;
         }
-    }
-</script>
+
+      } catch (err) {
+        console.error('Error en el formulario de solicitud:', err);
+        msgEl.textContent = 'Error de conexión. Por favor, intenta de nuevo.';
+        msgEl.classList.add('error');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Enviar Solicitud y Registrarme';
+      }
+    });
+  </script>
 
 </body>
 </html>
